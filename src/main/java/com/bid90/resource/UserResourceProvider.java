@@ -32,7 +32,7 @@ public class UserResourceProvider implements RealmResourceProvider {
     }
 
     @GET
-    @Path("group/{groupId}/users")
+    @Path("users/group/{groupId}")
     @NoCache
     @Produces(MediaType.APPLICATION_JSON)
     public Object groupUsers(@PathParam("groupId") String groupId,

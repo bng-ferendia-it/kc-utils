@@ -2,16 +2,14 @@ package com.bid90.mapper;
 
 import com.google.auto.service.AutoService;
 import org.keycloak.Config;
-import org.keycloak.models.ClientSessionContext;
-import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.ProtocolMapperModel;
-import org.keycloak.models.UserSessionModel;
+import org.keycloak.models.*;
 import org.keycloak.protocol.oidc.mappers.*;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.representations.IDToken;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.keycloak.protocol.ProtocolMapper;
 
@@ -25,38 +23,58 @@ public class GroupToken extends AbstractOIDCProtocolMapper implements OIDCAccess
      * configure the protocol mapper in keycloak.
      */
     public static final String PROVIDER_ID = "bid-group-mapper";
-    public static final String PROPERTY_INCLUDE_ID = "include-id";
-    public static final String PROPERTY_INCLUDE_NAME = "include-name";
+
+    public static final String PROPERTY_GROUP_NAME = "group-name";
+    public static final String PROPERTY_SUBGROUP_NAME = "subgroup-name";
+    public static final String PROPERTY_INCLUDE_FIELDS = "include-fields";
+
 
     static {
         // The builtin protocol mapper let the user define under which claim name (key)
         // the protocol mapper writes its value. To display this option in the generic dialog
         // in keycloak, execute the following method.
-        OIDCAttributeMapperHelper.addTokenClaimNameConfig(configProperties);
+        // OIDCAttributeMapperHelper.addTokenClaimNameConfig(configProperties);
         // The builtin protocol mapper let the user define for which tokens the protocol mapper
         // is executed (access token, id token, user info). To add the config options for the different types
         // to the dialog execute the following method. Note that the following method uses the interfaces
         // this token mapper implements to decide which options to add to the config. So if this token
         // mapper should never be available for some sort of options, e.g. like the id token, just don't
         // implement the corresponding interface.
-        ProviderConfigProperty idProperty = new ProviderConfigProperty();
-        idProperty.setName(PROPERTY_INCLUDE_ID);
-        idProperty.setLabel("Include Group UUID");
-        idProperty.setType(ProviderConfigProperty.BOOLEAN_TYPE);
-        idProperty.setDefaultValue(false);
-        idProperty.setHelpText("Include Group UUID to the token");
-        idProperty.setSecret(true);
+        ProviderConfigProperty groupNameProperty = new ProviderConfigProperty();
+        groupNameProperty.setName(PROPERTY_GROUP_NAME);
+        groupNameProperty.setLabel("Group name");
+        groupNameProperty.setType(ProviderConfigProperty.STRING_TYPE);
+        groupNameProperty.setHelpText("Group name");
+        groupNameProperty.setDefaultValue("group");
+        groupNameProperty.setSecret(false);
 
-        ProviderConfigProperty nameProperty = new ProviderConfigProperty();
-        nameProperty.setName(PROPERTY_INCLUDE_NAME);
-        nameProperty.setLabel("Include Group Name");
-        nameProperty.setType(ProviderConfigProperty.BOOLEAN_TYPE);
-        nameProperty.setDefaultValue(true);
-        nameProperty.setHelpText("Include Group Name to the token");
-        nameProperty.setSecret(true);
+        ProviderConfigProperty subgroupNameProperty = new ProviderConfigProperty();
+        subgroupNameProperty.setName(PROPERTY_SUBGROUP_NAME);
+        subgroupNameProperty.setLabel("Subgroup name");
+        subgroupNameProperty.setType(ProviderConfigProperty.STRING_TYPE);
+        subgroupNameProperty.setHelpText("Subgroup name");
+        subgroupNameProperty.setDefaultValue("group");
+        subgroupNameProperty.setSecret(false);
 
-        configProperties.add(nameProperty);
-        configProperties.add(idProperty);
+        ProviderConfigProperty includeProperty = new ProviderConfigProperty();
+        includeProperty.setName(PROPERTY_INCLUDE_FIELDS);
+        includeProperty.setLabel("Group fields");
+        includeProperty.setType(ProviderConfigProperty.LIST_TYPE);
+        List<String> type = new ArrayList<>(3);
+        type.add("Id & Name");
+        type.add("Id");
+        type.add("Name");
+        includeProperty.setOptions(type);
+        includeProperty.setHelpText("Include Group UUID or Group Name or both to the token");
+        includeProperty.setSecret(false);
+
+
+
+        configProperties.add(groupNameProperty);
+        configProperties.add(subgroupNameProperty);
+        configProperties.add(includeProperty);
+
+
         OIDCAttributeMapperHelper.addIncludeInTokensConfig(configProperties, GroupToken.class);
     }
 
@@ -90,30 +108,16 @@ public class GroupToken extends AbstractOIDCProtocolMapper implements OIDCAccess
                             final UserSessionModel userSession,
                             final KeycloakSession keycloakSession,
                             final ClientSessionContext clientSessionCtx) {
-        boolean includeId = mappingModel.getConfig().get(PROPERTY_INCLUDE_ID).toLowerCase().contains("true");
-        boolean includeName = mappingModel.getConfig().get(PROPERTY_INCLUDE_NAME).toLowerCase().contains("true");
-        String claimName = mappingModel.getConfig().get("claim.name");
-        if (includeId || includeName) {
-            List<Object> groups = userSession.getUser().getGroupsStream().map(groupModel -> {
-                if (includeId && includeName) {
-                    Map<String, String> group = new HashMap<>();
-                    group.put("id", groupModel.getId());
-                    group.put("name", groupModel.getName());
-                    return group;
-                } else {
-                    String group = null;
-                    if (includeId) {
-                        group = groupModel.getId();
-                    }
-                    if (includeName) {
-                        group = groupModel.getName();
-                    }
-                    return group;
-                }
-            }).collect(Collectors.toList());
-            token.getOtherClaims().put(claimName, groups);
 
-        }
+        String groupName = mappingModel.getConfig().get(PROPERTY_GROUP_NAME);
+        String subgroupName = mappingModel.getConfig().get(PROPERTY_SUBGROUP_NAME);
+
+        String fields = mappingModel.getConfig().get(PROPERTY_INCLUDE_FIELDS).toLowerCase();
+
+        var group = userSession.getUser().getGroupsStream()
+                .map(groupModel -> GroupMapper.newGroup(groupModel,subgroupName,fields.toUpperCase())).collect(Collectors.toList());
+        token.getOtherClaims().put(groupName, group);
+
     }
 
 

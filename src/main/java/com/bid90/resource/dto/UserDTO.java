@@ -1,4 +1,4 @@
-package com.bid90;
+package com.bid90.resource.dto;
 
 import lombok.Data;
 import org.keycloak.models.UserModel;
@@ -20,31 +20,8 @@ public class UserDTO {
         this.username = userModel.getUsername();
         this.firstname = userModel.getFirstName();
         this.lastname = userModel.getLastName();
-        this.groups = userModel.getGroupsStream().map(groupModel -> new GroupDTO(groupModel.getId(),groupModel.getName()))
+        this.groups = userModel.getGroupsStream().map(groupModel -> new GroupDTO(groupModel))
                 .collect(Collectors.toList());
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getFirstname() {
-        return firstname;
-    }
-
-    public String getLastname() {
-        return lastname;
-    }
-
-    public List<GroupDTO> getGroups() {
-        return groups;
-    }
 }

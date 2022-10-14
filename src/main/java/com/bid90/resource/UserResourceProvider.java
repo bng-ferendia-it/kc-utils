@@ -1,11 +1,9 @@
 package com.bid90.resource;
 
-import com.bid90.UserDTO;
+import com.bid90.resource.dto.UserDTO;
 import com.bid90.util.Pagination;
 import org.jboss.resteasy.annotations.cache.NoCache;
-import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.UserModel;
 import org.keycloak.services.managers.AppAuthManager;
 import org.keycloak.services.managers.AuthenticationManager.AuthResult;
 import org.keycloak.services.resource.RealmResourceProvider;
@@ -40,15 +38,12 @@ public class UserResourceProvider implements RealmResourceProvider {
                              @DefaultValue("100") @QueryParam("pageSize") int pageSize) {
         var auth = authResult();
         var realmModel = auth.getSession().getRealm();
-        var userGroupIdList = auth.getUser().getGroupsStream()
-                .map(GroupModel::getId).collect(Collectors.toList());
-        if (!userGroupIdList.contains(groupId)) {
-            throw new ForbiddenException("Does not have permission to fetch users");
-        }
+
         var users = session.users().getUsersStream(realmModel)
                 .map(userModel -> new UserDTO(userModel))
-                .filter(userDTO -> userDTO.getGroups().stream().filter(groupDTO -> groupDTO.getId().contains(groupId)).count() > 0)
+                .filter(userDTO -> CheckGroup.check(userDTO.getGroups(),groupId))
                 .collect(Collectors.toList());
+
         return Pagination.paginate(users, pageIndex, pageSize);
     }
 

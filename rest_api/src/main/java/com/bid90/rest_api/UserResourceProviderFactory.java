@@ -1,4 +1,4 @@
-package com.bid90.resource;
+package com.bid90.rest_api;
 
 import com.google.auto.service.AutoService;
 import org.keycloak.Config;

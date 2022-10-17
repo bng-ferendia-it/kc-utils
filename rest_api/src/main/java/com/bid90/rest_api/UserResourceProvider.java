@@ -1,6 +1,6 @@
-package com.bid90.resource;
+package com.bid90.rest_api;
 
-import com.bid90.resource.dto.UserDTO;
+import com.bid90.rest_api.dto.UserDTO;
 import com.bid90.util.Pagination;
 import org.jboss.resteasy.annotations.cache.NoCache;
 import org.keycloak.models.KeycloakSession;

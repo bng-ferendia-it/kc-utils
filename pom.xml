@@ -6,7 +6,12 @@
 
     <groupId>com.bid90</groupId>
     <artifactId>kc-utils</artifactId>
+    <packaging>pom</packaging>
     <version>1.0.0</version>
+    <modules>
+        <module>mapper</module>
+        <module>rest_api</module>
+    </modules>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>

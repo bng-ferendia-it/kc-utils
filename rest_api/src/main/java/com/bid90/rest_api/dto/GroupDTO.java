@@ -1,4 +1,4 @@
-package com.bid90.resource.dto;
+package com.bid90.rest_api.dto;
 
 import lombok.Data;
 import org.keycloak.models.GroupModel;

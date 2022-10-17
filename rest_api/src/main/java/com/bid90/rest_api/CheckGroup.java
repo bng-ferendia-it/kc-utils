@@ -1,6 +1,6 @@
-package com.bid90.resource;
+package com.bid90.rest_api;
 
-import com.bid90.resource.dto.GroupDTO;
+import com.bid90.rest_api.dto.GroupDTO;
 
 import java.util.List;
 

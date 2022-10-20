@@ -25,7 +25,9 @@ Login in to Admin Console, select Realm and go to Clients, after that select wis
 
 ## Keycloak REST endpoint/resource extension
 
-* List users by group
+* List users by group: "/realms/{realmName}/bid-user-rest-resource/users/group/{groupId}"
+* Get all user: "/realms/{realmName}/bid-user-rest-resource/users}"
+* Get user by id: "/realms/{realmName}/bid-user-rest-resource/user/{userId}"
 ```
 curl --location --request GET 'http://localhost:8080/realms/Test/bid-user-rest-resource/users/group/{groupId}' \
 --header 'Authorization: Bearer token'

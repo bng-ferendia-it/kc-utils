@@ -10,6 +10,7 @@ import org.keycloak.services.resource.RealmResourceProvider;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 
@@ -41,7 +42,41 @@ public class UserResourceProvider implements RealmResourceProvider {
 
         var users = session.users().getUsersStream(realmModel)
                 .map(userModel -> new UserDTO(userModel))
-                .filter(userDTO -> CheckGroup.check(userDTO.getGroups(),groupId))
+                .filter(userDTO -> HelperFunctions.checkIfContainIds(userDTO.getGroups(), Arrays.asList(groupId)))
+                .collect(Collectors.toList());
+
+        return Pagination.paginate(users, pageIndex, pageSize);
+    }
+
+    @GET
+    @Path("user/{userId}")
+    @NoCache
+    @Produces(MediaType.APPLICATION_JSON)
+    public Object users(@PathParam("userId") String userId ){
+        var auth = authResult();
+        var realmModel = auth.getSession().getRealm();
+
+        var users = session.users().getUsersStream(realmModel)
+                .map(userModel -> new UserDTO(userModel))
+                .filter(userDTO -> userDTO.getId().contains(userId)).findFirst();
+
+        return users.orElse(null);
+    }
+
+    @GET
+    @Path("users")
+    @NoCache
+    @Produces(MediaType.APPLICATION_JSON)
+    public Object groupUsers(@DefaultValue("1") @QueryParam("pageIndex") int pageIndex,
+                             @DefaultValue("100") @QueryParam("pageSize") int pageSize) {
+        var auth = authResult();
+        var realmModel = auth.getSession().getRealm();
+
+        var userGroupIds = HelperFunctions.getIds(auth.getUser().getGroupsStream());
+
+        var users = session.users().getUsersStream(realmModel)
+                .map(userModel -> new UserDTO(userModel))
+                .filter(userDTO -> HelperFunctions.checkIfContainIds(userDTO.getGroups(),userGroupIds))
                 .collect(Collectors.toList());
 
         return Pagination.paginate(users, pageIndex, pageSize);

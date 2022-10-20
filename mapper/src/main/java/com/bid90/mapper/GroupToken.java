@@ -65,7 +65,7 @@ public class GroupToken extends AbstractOIDCProtocolMapper implements OIDCAccess
         includeProperty.setOptions(type);
         includeProperty.setHelpText("Include Group UUID or Group Name or both to the token");
         includeProperty.setSecret(false);
-
+        includeProperty.setDefaultValue("Id & Name");
 
 
         configProperties.add(groupNameProperty);
